@@ -1,9 +1,9 @@
 /* 从原始 style.css 复制的全局样式 */
 :root {
   /* 亮色模式 - 北大红主题 */
-  --primary-color: #B31B1B;
-  --secondary-color: #8C1515;
-  --accent-color: #E4002B;
+  --primary-color: #b31b1b;
+  --secondary-color: #8c1515;
+  --accent-color: #e4002b;
   --success-color: #10b981;
   --warning-color: #f59e0b;
   --error-color: #ef4444;
@@ -13,9 +13,9 @@
   --text-primary: #1f2937;
   --text-secondary: #6b7280;
   --border-color: rgba(255, 255, 255, 0.2);
-  --bg-gradient-start: #B31B1B;
-  --bg-gradient-mid: #8C1515;
-  --bg-gradient-end: #E4002B;
+  --bg-gradient-start: #b31b1b;
+  --bg-gradient-mid: #8c1515;
+  --bg-gradient-end: #e4002b;
   --input-bg: rgba(255, 255, 255, 0.9);
   --input-border: rgba(209, 213, 219, 0.8);
   --modal-bg: rgba(0, 0, 0, 0.4);
