@@ -69,7 +69,7 @@ class ApiStatsClient {
       return {
         success: true,
         data: {
-          siteName: 'Claude Relay Service',
+          siteName: 'Whoos Solutions API Hub',
           siteIcon: '',
           siteIconData: ''
         }
