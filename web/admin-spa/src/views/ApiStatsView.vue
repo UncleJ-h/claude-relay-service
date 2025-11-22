@@ -253,7 +253,7 @@ watch(apiKey, (newValue) => {
 <style scoped>
 /* 渐变背景 */
 .gradient-bg {
-  background: linear-gradient(135deg, #b31b1b 0%, #8c1515 50%, #e4002b 100%);
+  background: linear-gradient(135deg, #b31b1b 0%, #e4002b 50%, #ffcd00 100%);
   background-attachment: fixed;
   min-height: 100vh;
   position: relative;
@@ -275,9 +275,9 @@ watch(apiKey, (newValue) => {
   right: 0;
   bottom: 0;
   background:
-    radial-gradient(circle at 20% 80%, rgba(228, 0, 43, 0.2) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(179, 27, 27, 0.2) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(140, 21, 21, 0.1) 0%, transparent 50%);
+    radial-gradient(circle at 20% 80%, rgba(255, 205, 0, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(228, 0, 43, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(179, 27, 27, 0.15) 0%, transparent 50%);
   pointer-events: none;
   z-index: 0;
 }
@@ -321,7 +321,7 @@ watch(apiKey, (newValue) => {
 
 /* 标题渐变 */
 .header-title {
-  background: linear-gradient(135deg, #b31b1b 0%, #8c1515 100%);
+  background: linear-gradient(135deg, #b31b1b 0%, #e4002b 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -398,7 +398,7 @@ watch(apiKey, (newValue) => {
 
 /* 管理后台按钮 - 精致版本 */
 .admin-button-refined {
-  background: linear-gradient(135deg, #b31b1b 0%, #8c1515 100%);
+  background: linear-gradient(135deg, #b31b1b 0%, #e4002b 100%);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
@@ -428,16 +428,16 @@ watch(apiKey, (newValue) => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, #8c1515 0%, #b31b1b 100%);
+  background: linear-gradient(135deg, #e4002b 0%, #ffcd00 100%);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
 .admin-button-refined:hover {
   transform: translateY(-2px) scale(1.02);
-  background: linear-gradient(135deg, #8c1515 0%, #b31b1b 100%);
+  background: linear-gradient(135deg, #e4002b 0%, #ffcd00 100%);
   box-shadow:
-    0 8px 20px rgba(140, 21, 21, 0.35),
+    0 8px 20px rgba(228, 0, 43, 0.35),
     inset 0 1px 1px rgba(255, 255, 255, 0.3);
   border-color: rgba(255, 255, 255, 0.4);
   color: white;
@@ -449,8 +449,8 @@ watch(apiKey, (newValue) => {
 
 /* 暗色模式下的悬停效果 */
 :global(.dark) .admin-button-refined:hover {
-  background: linear-gradient(135deg, #b31b1b 0%, #8c1515 100%);
-  border-color: rgba(147, 51, 234, 0.4);
+  background: linear-gradient(135deg, #b31b1b 0%, #e4002b 100%);
+  border-color: rgba(179, 27, 27, 0.4);
   box-shadow:
     0 8px 20px rgba(179, 27, 27, 0.3),
     inset 0 1px 1px rgba(255, 255, 255, 0.1);
@@ -481,7 +481,7 @@ watch(apiKey, (newValue) => {
 }
 
 .period-btn.active {
-  background: linear-gradient(135deg, #b31b1b 0%, #8c1515 100%);
+  background: linear-gradient(135deg, #b31b1b 0%, #e4002b 100%);
   color: white;
   box-shadow:
     0 10px 15px -3px rgba(179, 27, 27, 0.3),
@@ -556,7 +556,7 @@ watch(apiKey, (newValue) => {
 
 .tab-pill-button.active {
   background: white;
-  color: #8c1515;
+  color: #b31b1b;
   box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
