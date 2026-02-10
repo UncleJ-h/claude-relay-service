@@ -198,7 +198,7 @@ jobs:
 
             if (rebaseResult === 'conflict') {
               title = '🔴 上游同步失败: Rebase 冲突';
-              body = `## 同步失败通知\n\n上游有 ${behind} 个新提交，但自动 rebase 遇到冲突。\n\n### 需要手动处理\n\n请在本地执行以下命令：\n\n\`\`\`bash\ncd /Users/jeffreyhu/DEV/claude-relay-service\ngit fetch upstream\ngit rebase upstream/main\n# 解决冲突后\ngit add .\ngit rebase --continue\nnpm run build:web\ngit push origin main --force-with-lease\n\`\`\`\n\n### 冲突处理策略\n- UI/样式文件 → 保留我们的版本 (\`git checkout --ours\`)\n- 功能代码 → 保留上游版本 (\`git checkout --theirs\`)`;
+              body = `## 同步失败通知\n\n上游有 ${behind} 个新提交，但自动 rebase 遇到冲突。\n\n### 需要手动处理\n\n请在本地执行以下命令：\n\n\`\`\`bash\ncd /Users/jeffreyhu/DEV/claude-relay-service\ngit fetch upstream\ngit rebase upstream/main\n# 解决冲突后\ngit add .\ngit rebase --continue\nnpm run build:web\ngit push origin main --force-with-lease\n\`\`\`\n\n### 冲突处理策略（Rebase 语境）\n- 功能代码 → 保留上游版本（rebase 时 \`--ours\` = 上游；更安全是用 \`git show upstream/main:<path> > <path>\`）\n- UI/样式文件 → 保留我们的版本（rebase 时 \`--theirs\` = 我们；例如 \`git checkout --theirs -- <path>\`）`;
             } else if (buildResult === 'failed') {
               title = '🔴 上游同步失败: 构建错误';
               body = `## 同步失败通知\n\nRebase 成功，但 \`npm run build:web\` 构建失败。\n\n请检查构建日志并手动修复。`;
