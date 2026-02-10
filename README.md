@@ -667,8 +667,8 @@ cd claude-relay-service
 # 2. 拉取最新代码
 git pull origin main
 
-# 如果遇到 package-lock.json 冲突，使用远程版本
-git checkout --theirs package-lock.json
+# 如果遇到 package-lock.json 冲突，使用远程版本（推荐：不依赖 ours/theirs 在 merge/rebase 下的差异）
+git show origin/main:package-lock.json > package-lock.json
 git add package-lock.json
 
 # 3. 安装新的依赖（如果有）

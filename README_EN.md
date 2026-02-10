@@ -336,8 +336,8 @@ cd claude-relay-service
 # 2. Pull latest code
 git pull origin main
 
-# If you encounter package-lock.json conflicts, use the remote version
-git checkout --theirs package-lock.json
+# If you encounter package-lock.json conflicts, use the remote version (safe for merge/rebase)
+git show origin/main:package-lock.json > package-lock.json
 git add package-lock.json
 
 # 3. Install new dependencies (if any)
