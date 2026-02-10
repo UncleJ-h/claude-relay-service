@@ -203,18 +203,51 @@ echo "🔗 https://zeabur.com"
 
 ## ⚠️ 冲突处理策略
 
+### ‼️ 重要：Rebase 时 --ours / --theirs 含义和 Merge 是反的！
+
+```
+⚠️ git rebase 时：
+   --ours   = 上游代码（rebase onto 的目标分支）
+   --theirs = 我们自己的提交
+
+   和 git merge 的含义完全相反！
+```
+
+**推荐做法：不要用 --ours / --theirs，直接从 upstream 提取文件，避免混淆：**
+
+```bash
+# 保留上游的功能代码（最安全）
+git show upstream/main:<文件路径> > <文件路径>
+git add <文件路径>
+
+# 例如：
+git show upstream/main:src/services/relay/claudeRelayService.js > src/services/relay/claudeRelayService.js
+```
+
 ### 自动处理原则
-- **功能性代码**: 优先保留上游的新功能
-- **UI/样式代码**: 优先保留我们的品牌定制
+- **功能性代码**: 优先保留上游的新功能 → 用 `git show upstream/main:<path>` 提取
+- **UI/样式代码**: 优先保留我们的品牌定制 → 用 `git checkout --theirs <path>`（rebase 时 theirs = 我们的）
 - **配置文件**: 根据具体情况判断
 
 ### 可能冲突的文件
 如果以下文件发生冲突，优先保留我们的版本：
-- `web/admin-spa/src/styles/global.css` → 保留红金渐变
+- `web/admin-spa/src/assets/styles/global.css` → 保留红金渐变（CSS 变量）
 - `web/admin-spa/src/views/ApiStatsView.vue` → 保留红金配色
-- `web/admin-spa/public/logo.svg` → 保留 Whoos Logo
-- `web/admin-spa/public/favicon.ico` → 保留 Whoos 图标
+- `web/admin-spa/public/logo.png` → 保留 Whoos Logo
 - `web/admin-spa/index.html` → 保留 "Whoos Solutions API Hub" 标题
+
+### 目录重构注意事项（v1.1.273+）
+
+v1.1.273 开始，服务文件已从 `src/services/` 移到子目录：
+- `src/services/relay/` — 转发服务
+- `src/services/account/` — 账户管理
+- `src/services/scheduler/` — 调度器
+
+冲突解决时**务必注意 require 路径**：
+- 旧路径: `require('../utils/...')` （基于 `src/services/`）
+- 新路径: `require('../../utils/...')` （基于 `src/services/relay/` 等子目录）
+
+**踩坑记录**: 如果误用了旧版文件，路径不对会导致启动时 `Cannot find module` 错误。遇到 `src/services/relay/`、`account/`、`scheduler/` 下的冲突，**一律用 `git show upstream/main:<path>` 提取上游版本**。
 
 ## 📊 同步检查清单
 
@@ -340,28 +373,37 @@ git remote -v
 
 **冲突处理详解：**
 
+> ‼️ **切记**: Rebase 时 --ours = 上游, --theirs = 我们（和 merge 相反）
+> **推荐**: 用 `git show upstream/main:<path>` 直接提取，不用记 ours/theirs
+
 ```bash
 # 1. 查看冲突文件
 git status
 
 # 2. 对于每个冲突文件，根据类型处理：
 
-# UI/样式文件（保留我们的版本）：
-# - web/admin-spa/src/styles/global.css
-# - web/admin-spa/src/views/ApiStatsView.vue
-# - web/admin-spa/public/logo.svg
-# - web/admin-spa/public/favicon.ico
-git checkout --ours <冲突文件>
-git add <冲突文件>
+# ===== 方式 A（推荐）：用 git show 直接提取，不会搞混 =====
 
 # 功能性代码文件（保留上游版本）：
-# - src/services/*.js
-# - src/routes/*.js
-# - src/utils/*.js
-git checkout --theirs <冲突文件>
-git add <冲突文件>
+git show upstream/main:src/services/relay/claudeRelayService.js > src/services/relay/claudeRelayService.js
+git add src/services/relay/claudeRelayService.js
 
-# 需要手动合并的文件：
+# UI/样式文件（保留我们的版本）：
+# rebase 时 --theirs = 我们自己的提交
+git checkout --theirs web/admin-spa/src/views/ApiStatsView.vue
+git add web/admin-spa/src/views/ApiStatsView.vue
+
+# ===== 方式 B：用 ours/theirs（注意含义是反的！）=====
+
+# 保留上游 = --ours（rebase 时 ours 指上游）
+git checkout --ours <功能代码文件>
+git add <功能代码文件>
+
+# 保留我们的 = --theirs（rebase 时 theirs 指我们）
+git checkout --theirs <UI/品牌文件>
+git add <UI/品牌文件>
+
+# ===== 手动合并 =====
 # 编辑文件，手动解决冲突标记（<<<<<<< ======= >>>>>>>）
 # 保存后：
 git add <冲突文件>
@@ -377,17 +419,24 @@ git reset --hard origin/main
 **快速解决冲突的技巧：**
 
 ```bash
-# 批量接受我们的品牌文件
-git checkout --ours web/admin-spa/src/styles/global.css
-git checkout --ours web/admin-spa/src/views/ApiStatsView.vue
-git checkout --ours web/admin-spa/public/logo.svg
-git checkout --ours web/admin-spa/public/favicon.ico
-git checkout --ours web/admin-spa/index.html
-git add web/admin-spa/
+# 批量保留上游的功能代码（推荐用 git show 逐个提取）
+for f in $(git diff --name-only --diff-filter=U -- src/); do
+  git show upstream/main:"$f" > "$f" 2>/dev/null && git add "$f"
+done
 
-# 批量接受上游的功能代码
-git checkout --theirs src/
-git add src/
+# 批量保留我们的品牌文件（rebase 时 --theirs = 我们的）
+git checkout --theirs web/admin-spa/src/assets/styles/global.css 2>/dev/null
+git checkout --theirs web/admin-spa/src/views/ApiStatsView.vue 2>/dev/null
+git checkout --theirs web/admin-spa/public/logo.png 2>/dev/null
+git checkout --theirs web/admin-spa/index.html 2>/dev/null
+git add web/admin-spa/
+```
+
+**冲突解决后必须验证启动：**
+
+```bash
+# 验证应用能正常启动（特别是目录重构后的 require 路径）
+node -e "setTimeout(()=>{console.log('OK');process.exit(0)},3000); require('./src/app.js')"
 ```
 
 ### 问题 3：推送被拒绝
@@ -892,20 +941,25 @@ git remote -v
 
 ### 冲突快速解决
 
-```bash
-# 保留我们的品牌文件
-git checkout --ours web/admin-spa/src/styles/global.css
-git checkout --ours web/admin-spa/src/views/ApiStatsView.vue
-git checkout --ours web/admin-spa/public/*
-git checkout --ours web/admin-spa/index.html
-git add web/admin-spa/
+> ‼️ Rebase 时 ours/theirs 和 merge 是反的！推荐用 git show 提取
 
-# 保留上游功能代码
-git checkout --theirs src/
-git add src/
+```bash
+# 保留上游功能代码（推荐方式，不会搞混）
+git show upstream/main:<冲突文件路径> > <冲突文件路径>
+git add <冲突文件路径>
+
+# 保留我们的品牌文件（rebase 时 --theirs = 我们自己的）
+git checkout --theirs web/admin-spa/src/assets/styles/global.css
+git checkout --theirs web/admin-spa/src/views/ApiStatsView.vue
+git checkout --theirs web/admin-spa/public/logo.png
+git checkout --theirs web/admin-spa/index.html
+git add web/admin-spa/
 
 # 继续 rebase
 git rebase --continue
+
+# 解决完所有冲突后务必验证启动
+node -e "setTimeout(()=>{console.log('OK');process.exit(0)},3000); require('./src/app.js')"
 ```
 
 ## ❓ 常见问题 FAQ
