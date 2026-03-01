@@ -1,16 +1,13 @@
 name: Sync Upstream
 
 on:
-  schedule:
-    # 每小时检查一次 (UTC 时间)
-    - cron: '0 * * * *'
   workflow_dispatch:
-    # 支持手动触发
+    # 仅手动触发，避免定时任务自动改写 main 历史
     inputs:
       dry_run:
         description: 'Dry run mode (只检查不推送)'
         required: false
-        default: 'false'
+        default: 'true'
         type: boolean
 
 env:
