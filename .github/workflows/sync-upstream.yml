@@ -131,8 +131,8 @@ jobs:
             ERRORS=$((ERRORS + 1))
           fi
 
-          # 检查配色
-          if ! grep -q "#b31b1b\|#e4002b\|#ffcd00" web/admin-spa/src/styles/global.css; then
+          # 检查配色（实际路径含 assets/ 层级）
+          if ! grep -q "#b31b1b\|#e4002b\|#ffcd00" web/admin-spa/src/assets/styles/global.css; then
             echo "::warning::Brand colors may have been modified in global.css"
           fi
 
@@ -171,6 +171,15 @@ jobs:
         if: steps.verify.outputs.result == 'success' && github.event.inputs.dry_run != 'true'
         run: |
           echo "Pushing changes to origin..."
+          # 先 fetch origin 再处理 CI 自动提交（sync VERSION），避免 --force-with-lease stale 失败
+          git fetch origin ${{ env.UPSTREAM_BRANCH }}
+          AHEAD=$(git rev-list --count origin/${{ env.UPSTREAM_BRANCH }}..HEAD)
+          BEHIND_ORIGIN=$(git rev-list --count HEAD..origin/${{ env.UPSTREAM_BRANCH }})
+          echo "Ahead of origin: $AHEAD, Behind origin: $BEHIND_ORIGIN"
+          if [ "$BEHIND_ORIGIN" -gt 0 ]; then
+            echo "::notice::origin has $BEHIND_ORIGIN commits not in local (likely CI auto-commits), rebasing..."
+            git rebase origin/${{ env.UPSTREAM_BRANCH }}
+          fi
           git push origin ${{ env.UPSTREAM_BRANCH }} --force-with-lease
           echo "::notice::Successfully pushed to origin"
 
