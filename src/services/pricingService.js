@@ -372,6 +372,32 @@ class PricingService {
       }
     }
 
+    // 处理 Claude Console 返回的 "anthropic/claude-opus-4.6" 格式
+    // 去掉 "anthropic/" 前缀，将点号替换为横杠
+    if (modelName.includes('/')) {
+      const withoutProvider = modelName.replace(/^[^/]+\//, '').replace(/\./g, '-')
+      if (this.pricingData[withoutProvider]) {
+        logger.debug(
+          `💰 Found pricing for ${modelName} by stripping provider prefix: ${withoutProvider}`
+        )
+        return this.pricingData[withoutProvider]
+      }
+      // 继续用归一化后的名字做模糊匹配
+      const normalizedWithoutProvider = withoutProvider.toLowerCase().replace(/[_-]/g, '')
+      for (const [key, value] of Object.entries(this.pricingData)) {
+        const normalizedKey = key.toLowerCase().replace(/[_-]/g, '')
+        if (
+          normalizedKey.includes(normalizedWithoutProvider) ||
+          normalizedWithoutProvider.includes(normalizedKey)
+        ) {
+          logger.debug(
+            `💰 Found pricing for ${modelName} using fuzzy match after stripping provider: ${key}`
+          )
+          return value
+        }
+      }
+    }
+
     // 对于Bedrock区域前缀模型（如 us.anthropic.claude-sonnet-4-20250514-v1:0），
     // 尝试去掉区域前缀进行匹配
     if (modelName.includes('.anthropic.') || modelName.includes('.claude')) {

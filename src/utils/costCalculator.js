@@ -106,6 +106,10 @@ class CostCalculator {
     ) {
       const result = pricingService.calculateCost(usage, model)
       // 转换 pricingService 返回的格式到 costCalculator 的格式
+      // result.pricing 在模型未找到时可能为 undefined，需防护
+      if (!result || !result.pricing) {
+        return this._fallbackCost(usage, model)
+      }
       return {
         model,
         pricing: {
@@ -345,6 +349,35 @@ class CostCalculator {
         savings: this.formatCost(savings),
         savingsPercentage: `${savingsPercentage.toFixed(1)}%`
       }
+    }
+  }
+  // pricingService 找不到模型定价时的安全兜底，返回零费用结构
+  static _fallbackCost(usage, model) {
+    const inputTokens = usage.input_tokens || 0
+    const outputTokens = usage.output_tokens || 0
+    const cacheCreateTokens = usage.cache_creation_input_tokens || 0
+    const cacheReadTokens = usage.cache_read_input_tokens || 0
+    return {
+      model,
+      pricing: { input: 0, output: 0, cacheWrite: 0, cacheRead: 0 },
+      usingDynamicPricing: false,
+      isLongContextRequest: false,
+      usage: {
+        inputTokens,
+        outputTokens,
+        cacheCreateTokens,
+        cacheReadTokens,
+        totalTokens: inputTokens + outputTokens + cacheCreateTokens + cacheReadTokens
+      },
+      costs: { input: 0, output: 0, cacheWrite: 0, cacheRead: 0, total: 0 },
+      formatted: {
+        input: '$0.000000',
+        output: '$0.000000',
+        cacheWrite: '$0.000000',
+        cacheRead: '$0.000000',
+        total: '$0.000000'
+      },
+      debug: { unknownModel: true }
     }
   }
 }
