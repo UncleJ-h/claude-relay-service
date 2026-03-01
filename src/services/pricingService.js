@@ -54,6 +54,9 @@ class PricingService {
       'claude-sonnet-3-7': 0.000006,
       'claude-sonnet-4': 0.000006,
       'claude-sonnet-4-20250514': 0.000006,
+      'claude-sonnet-4-5': 0.000006,
+      'claude-sonnet-4-5-20250929': 0.000006,
+      'claude-sonnet-4-6': 0.000006,
 
       // Haiku 系列: $1.6/MTok
       'claude-3-5-haiku': 0.0000016,
