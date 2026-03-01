@@ -25,6 +25,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          ref: ${{ env.UPSTREAM_BRANCH }}
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -168,6 +169,7 @@ jobs:
           git commit -m "docs: 更新同步记录 - $VERSION (自动同步)"
 
       - name: Push changes
+        id: push
         if: steps.verify.outputs.result == 'success' && github.event.inputs.dry_run != 'true'
         run: |
           echo "Pushing changes to origin..."
@@ -191,7 +193,7 @@ jobs:
           echo "Rebase and build successful, but changes were not pushed (dry run mode)" >> $GITHUB_STEP_SUMMARY
 
       - name: Create issue on failure
-        if: failure() && steps.check.outputs.status == 'needs-sync'
+        if: always() && steps.check.outputs.status == 'needs-sync' && (steps.rebase.outputs.result == 'conflict' || steps.build.outputs.result == 'failed' || steps.verify.outputs.result == 'failed' || steps.push.outcome == 'failure')
         uses: actions/github-script@v7
         with:
           script: |
@@ -210,7 +212,10 @@ jobs:
               body = `## 同步失败通知\n\nRebase 成功，但 \`npm run build:web\` 构建失败。\n\n请检查构建日志并手动修复。`;
             } else if (verifyResult === 'failed') {
               title = '🔴 上游同步失败: 品牌文件验证失败';
-              body = `## 同步失败通知\n\nRebase 和构建成功，但品牌定制文件验证失败。\n\n可能是上游更新覆盖了我们的定制内容，请手动检查：\n- \`web/admin-spa/public/logo.svg\`\n- \`web/admin-spa/public/favicon.ico\`\n- \`web/admin-spa/index.html\` (品牌名称)\n- \`web/admin-spa/src/styles/global.css\` (配色)`;
+              body = `## 同步失败通知\n\nRebase 和构建成功，但品牌定制文件验证失败。\n\n可能是上游更新覆盖了我们的定制内容，请手动检查：\n- \`web/admin-spa/public/logo.svg\`\n- \`web/admin-spa/public/favicon.ico\`\n- \`web/admin-spa/index.html\` (品牌名称)\n- \`web/admin-spa/src/assets/styles/global.css\` (配色)`;
+            } else if ('${{ steps.push.outcome }}' === 'failure') {
+              title = '🔴 上游同步失败: 推送失败';
+              body = `## 同步失败通知\n\nRebase/构建/验证都通过了，但推送到 \`origin/main\` 失败。\n\n请检查 Actions 日志中的 push 步骤，通常是远端分支再次变化或权限问题。`;
             } else {
               title = '🔴 上游同步失败: 未知错误';
               body = `## 同步失败通知\n\n请检查 GitHub Actions 日志了解详情。`;
