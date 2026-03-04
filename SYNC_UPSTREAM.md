@@ -723,6 +723,8 @@ git push origin main
 | 2026-02-25 | v1.1.282 | 同步 10 个提交 (v1.1.280-282) | 无冲突 | ✅ 成功 | **修复**: 粘性会话/池选择临时不可用不自动切换、增强限流跟踪/窗口计费、billing-header判断; **增强**: 费用计算支持实时+存储费用; **重构**: Fast Mode逻辑 |
 | 2026-02-27 | v1.1.286 | 同步 13 个提交 (v1.1.283-286) | 无冲突 | ✅ 成功 | **修复**: SSE gzip解压导致数据损坏、拦截1M上下文避免误标限流; **优化**: OAI路由、统一端点返回标准OpenAI格式、Gemini处理器切换; **清理**: 删除误提交audit log文件 |
 
+| 2026-03-04 | v1.1.290 | 同步 36 个提交 (v1.1.287-290) | 3 次冲突（pricingService/定价JSON） | ✅ 成功 | **新功能**: 按API Key控制1M上下文窗口、codex-api可配置endpoint、账户路由状态可观测/503 cooldown可配置; **修复**: zstd编码透传致JSON解析失败、Extra usage 429误标限流、1h缓存定价对齐sub2api、api-stats E015错误、Console测试模型指定、allow1mContext编辑不保存; **重构**: 缓存价格计算从硬编码改为model_pricing.json优先+倍率兜底、提取tempUnavailablePolicy工具 |
+
 **下次更新请在此添加记录**
 
 ---
