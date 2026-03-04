@@ -157,13 +157,40 @@ class CostCalculator {
     }
 
     // 否则使用旧的逻辑（向后兼容）
+    return this._calculateLegacyCost(usage, model)
+  }
+
+  static _normalizeModelForLookup(model) {
+    if (typeof model !== 'string') {
+      return 'unknown'
+    }
+    let name = model.replace(/\[1m\]/gi, '').trim()
+    if (!name) {
+      return 'unknown'
+    }
+    // Claude Console "anthropic/claude-opus-4.6" -> "claude-opus-4-6"
+    if (name.includes('/')) {
+      name = name.replace(/^[^/]+\//, '')
+    }
+    name = name.replace(/\./g, '-')
+    return name
+  }
+
+  static _calculateLegacyCost(usage, model = 'unknown') {
+    const modelForLookup = this._normalizeModelForLookup(model)
+
     const inputTokens = usage.input_tokens || 0
     const outputTokens = usage.output_tokens || 0
-    const cacheCreateTokens = usage.cache_creation_input_tokens || 0
+    const cacheCreateTokens =
+      usage.cache_creation_input_tokens ||
+      (usage.cache_creation
+        ? (usage.cache_creation.ephemeral_5m_input_tokens || 0) +
+          (usage.cache_creation.ephemeral_1h_input_tokens || 0)
+        : 0)
     const cacheReadTokens = usage.cache_read_input_tokens || 0
 
     // 优先使用动态价格服务
-    const pricingData = pricingService.getModelPricing(model)
+    const pricingData = pricingService.getModelPricing(modelForLookup) || pricingService.getModelPricing(model)
     let pricing
     let usingDynamicPricing = false
 
@@ -192,7 +219,9 @@ class CostCalculator {
 
       // 检测是否为 OpenAI 模型（通过模型名或 litellm_provider）
       const isOpenAIModel =
-        model.includes('gpt') || model.includes('o1') || pricingData.litellm_provider === 'openai'
+        modelForLookup.includes('gpt') ||
+        modelForLookup.includes('o1') ||
+        pricingData.litellm_provider === 'openai'
 
       if (isOpenAIModel && !pricingData.cache_creation_input_token_cost && cacheCreateTokens > 0) {
         // OpenAI 模型：缓存创建按普通 input 价格计费
@@ -207,8 +236,8 @@ class CostCalculator {
       }
       usingDynamicPricing = true
     } else {
-      // 回退到静态价格
-      pricing = MODEL_PRICING[model] || MODEL_PRICING['unknown']
+      // 回退到静态价格（先用归一化后的名字查一次）
+      pricing = MODEL_PRICING[modelForLookup] || MODEL_PRICING[model] || MODEL_PRICING['unknown']
     }
 
     // 计算各类型token的费用 (USD)
@@ -247,10 +276,11 @@ class CostCalculator {
       },
       // 添加调试信息
       debug: {
-        isOpenAIModel: model.includes('gpt') || model.includes('o1'),
+        isOpenAIModel: modelForLookup.includes('gpt') || modelForLookup.includes('o1'),
         hasCacheCreatePrice: !!pricingData?.cache_creation_input_token_cost,
         cacheCreateTokens,
-        cacheWritePriceUsed: pricing.cacheWrite
+        cacheWritePriceUsed: pricing.cacheWrite,
+        fallback: !pricingData
       }
     }
   }
@@ -363,34 +393,10 @@ class CostCalculator {
       }
     }
   }
-  // pricingService 找不到模型定价时的安全兜底，返回零费用结构
+  // pricingService 找不到模型定价时的安全兜底：
+  // 用 legacy 逻辑回退，避免 quota/usage 显示为 0 或直接崩溃。
   static _fallbackCost(usage, model) {
-    const inputTokens = usage.input_tokens || 0
-    const outputTokens = usage.output_tokens || 0
-    const cacheCreateTokens = usage.cache_creation_input_tokens || 0
-    const cacheReadTokens = usage.cache_read_input_tokens || 0
-    return {
-      model,
-      pricing: { input: 0, output: 0, cacheWrite: 0, cacheRead: 0 },
-      usingDynamicPricing: false,
-      isLongContextRequest: false,
-      usage: {
-        inputTokens,
-        outputTokens,
-        cacheCreateTokens,
-        cacheReadTokens,
-        totalTokens: inputTokens + outputTokens + cacheCreateTokens + cacheReadTokens
-      },
-      costs: { input: 0, output: 0, cacheWrite: 0, cacheRead: 0, total: 0 },
-      formatted: {
-        input: '$0.000000',
-        output: '$0.000000',
-        cacheWrite: '$0.000000',
-        cacheRead: '$0.000000',
-        total: '$0.000000'
-      },
-      debug: { unknownModel: true }
-    }
+    return this._calculateLegacyCost(usage, model)
   }
 }
 
