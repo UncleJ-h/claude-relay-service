@@ -1789,8 +1789,6 @@ router.post('/v1/messages/count_tokens', authenticateApiKey, async (req, res) =>
       return { fallbackResponse: true }
     }
 
-    res.status(response.statusCode)
-
     const skipHeaders = ['content-encoding', 'transfer-encoding', 'content-length']
     Object.keys(response.headers).forEach((key) => {
       if (!skipHeaders.includes(key.toLowerCase())) {
@@ -1801,13 +1799,29 @@ router.post('/v1/messages/count_tokens', authenticateApiKey, async (req, res) =>
     try {
       const jsonData = JSON.parse(response.body)
       if (response.statusCode < 200 || response.statusCode >= 300) {
-        const sanitizedData = sanitizeUpstreamError(jsonData)
-        res.json(sanitizedData)
-      } else {
-        res.json(jsonData)
+        const upstreamMessage =
+          jsonData && typeof jsonData === 'object'
+            ? jsonData?.error?.message || jsonData?.message || jsonData?.error || ''
+            : String(jsonData || '')
+
+        logger.warn('⚠️ count_tokens upstream error', {
+          statusCode: response.statusCode,
+          message: upstreamMessage ? String(upstreamMessage).slice(0, 300) : ''
+        })
+
+        // sanitizeUpstreamError 基于 payload 内的 status 映射错误码；
+        // 这里注入 HTTP 状态码，避免上游 payload 没有 status 字段时误判为 E015(500)
+        const upstreamErrorPayload =
+          jsonData && typeof jsonData === 'object'
+            ? { response: { status: response.statusCode }, ...jsonData }
+            : { response: { status: response.statusCode }, message: String(jsonData || '') }
+
+        const sanitizedData = sanitizeUpstreamError(upstreamErrorPayload)
+        return res.status(sanitizedData.status).json(sanitizedData)
       }
+      return res.status(response.statusCode).json(jsonData)
     } catch (parseError) {
-      res.send(response.body)
+      return res.status(response.statusCode).send(response.body)
     }
 
     logger.info(`✅ Token count request completed for key: ${req.apiKey.name}`)

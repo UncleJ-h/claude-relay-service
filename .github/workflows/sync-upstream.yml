@@ -115,15 +115,23 @@ jobs:
           ERRORS=0
 
           # 检查 logo
-          if [ ! -f "web/admin-spa/public/logo.svg" ]; then
-            echo "::error::Missing logo.svg"
+          if [ ! -f "web/admin-spa/public/logo.png" ] && [ ! -f "web/admin-spa/public/logo.svg" ]; then
+            echo "::error::Missing logo (expected web/admin-spa/public/logo.png or logo.svg)"
             ERRORS=$((ERRORS + 1))
           fi
 
-          # 检查 favicon
+          # 检查 favicon / touch icons（兼容 favicon.ico 或 PNG 组合）
           if [ ! -f "web/admin-spa/public/favicon.ico" ]; then
-            echo "::error::Missing favicon.ico"
-            ERRORS=$((ERRORS + 1))
+            MISSING_ICONS=0
+            for ICON_FILE in favicon-16x16.png favicon-32x32.png apple-touch-icon.png; do
+              if [ ! -f "web/admin-spa/public/${ICON_FILE}" ]; then
+                echo "::error::Missing ${ICON_FILE}"
+                MISSING_ICONS=$((MISSING_ICONS + 1))
+              fi
+            done
+            if [ $MISSING_ICONS -gt 0 ]; then
+              ERRORS=$((ERRORS + 1))
+            fi
           fi
 
           # 检查品牌名称
@@ -150,8 +158,13 @@ jobs:
         id: version
         if: steps.verify.outputs.result == 'success'
         run: |
-          # 获取最新的版本标签
-          VERSION=$(git describe --tags upstream/${{ env.UPSTREAM_BRANCH }} --abbrev=0 2>/dev/null || echo "unknown")
+          # 优先读取 VERSION 文件（不依赖 tag；fork 上 tag 可能被污染）
+          RAW_VERSION=$(cat VERSION 2>/dev/null | tr -d ' \n\r' || echo "")
+          if [ -n "$RAW_VERSION" ]; then
+            VERSION="v$RAW_VERSION"
+          else
+            VERSION=$(git describe --tags upstream/${{ env.UPSTREAM_BRANCH }} --abbrev=0 2>/dev/null || echo "unknown")
+          fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "::notice::Upstream version: $VERSION"
 
@@ -212,7 +225,7 @@ jobs:
               body = `## 同步失败通知\n\nRebase 成功，但 \`npm run build:web\` 构建失败。\n\n请检查构建日志并手动修复。`;
             } else if (verifyResult === 'failed') {
               title = '🔴 上游同步失败: 品牌文件验证失败';
-              body = `## 同步失败通知\n\nRebase 和构建成功，但品牌定制文件验证失败。\n\n可能是上游更新覆盖了我们的定制内容，请手动检查：\n- \`web/admin-spa/public/logo.svg\`\n- \`web/admin-spa/public/favicon.ico\`\n- \`web/admin-spa/index.html\` (品牌名称)\n- \`web/admin-spa/src/assets/styles/global.css\` (配色)`;
+              body = `## 同步失败通知\n\nRebase 和构建成功，但品牌定制文件验证失败。\n\n可能是上游更新覆盖了我们的定制内容，请手动检查：\n- \`web/admin-spa/public/logo.png\` (或 \`logo.svg\`)\n- \`web/admin-spa/public/favicon-32x32.png\`\n- \`web/admin-spa/public/favicon-16x16.png\`\n- \`web/admin-spa/public/apple-touch-icon.png\`\n- \`web/admin-spa/index.html\` (品牌名称)\n- \`web/admin-spa/src/assets/styles/global.css\` (配色)`;
             } else if ('${{ steps.push.outcome }}' === 'failure') {
               title = '🔴 上游同步失败: 推送失败';
               body = `## 同步失败通知\n\nRebase/构建/验证都通过了，但推送到 \`origin/main\` 失败。\n\n请检查 Actions 日志中的 push 步骤，通常是远端分支再次变化或权限问题。`;
