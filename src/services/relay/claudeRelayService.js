@@ -1246,15 +1246,16 @@ class ClaudeRelayService {
       return
     }
 
-    try {
-      // 使用缓存的定价数据
-      const pricingFilePath = path.join(__dirname, '../../data/model_pricing.json')
-      const pricingData = getPricingData(pricingFilePath)
+      try {
+        // 使用缓存的定价数据
+        // pricingService 写入到 process.cwd()/data；这里用一致的路径，避免在容器里落到 /app/src/data
+        const pricingFilePath = path.join(process.cwd(), 'data', 'model_pricing.json')
+        const pricingData = getPricingData(pricingFilePath)
 
-      if (!pricingData) {
-        logger.warn('⚠️ Model pricing file not found, skipping max_tokens validation')
-        return
-      }
+        if (!pricingData) {
+          logger.warn('⚠️ Model pricing file not found, skipping max_tokens validation')
+          return
+        }
 
       const model = body.model || 'claude-sonnet-4-20250514'
 
