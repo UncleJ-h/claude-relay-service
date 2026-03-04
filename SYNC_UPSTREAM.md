@@ -38,8 +38,8 @@
 
 ### 品牌信息
 - **品牌名称**: Whoos Solutions API Hub
-- **Logo**: `web/admin-spa/public/logo.svg`
-- **Favicon**: `web/admin-spa/public/favicon.ico`
+- **Logo**: `web/admin-spa/public/logo.png`
+- **Icons**: `web/admin-spa/public/favicon-32x32.png` / `web/admin-spa/public/favicon-16x16.png` / `web/admin-spa/public/apple-touch-icon.png`
 
 ### UI 配色方案
 - **主题**: 北大红金渐变
@@ -49,12 +49,12 @@
   - 金黄: `#ffcd00`
 
 ### 修改的文件
-1. `web/admin-spa/src/styles/global.css` - 全局渐变配色
+1. `web/admin-spa/src/assets/styles/global.css` - 全局渐变配色
 2. `web/admin-spa/src/views/ApiStatsView.vue` - API 统计页面配色
-3. `web/admin-spa/public/logo.svg` - 品牌 Logo
-4. `web/admin-spa/public/favicon.ico` - 网站图标
+3. `web/admin-spa/public/logo.png` - 品牌 Logo
+4. `web/admin-spa/public/favicon-32x32.png` / `web/admin-spa/public/favicon-16x16.png` / `web/admin-spa/public/apple-touch-icon.png` - 网站图标
 5. `web/admin-spa/index.html` - 站点标题
-6. `vite.config.js` - ESLint 构建配置（如有）
+6. `web/admin-spa/vite.config.js` - ESLint 构建配置（如有）
 
 ## 🚀 同步流程（完整版）
 
@@ -583,8 +583,10 @@ git status
 git log --oneline -5
 
 # 2. 验证关键文件
-ls -la web/admin-spa/public/logo.svg
-ls -la web/admin-spa/public/favicon.ico
+ls -la web/admin-spa/public/logo.png
+ls -la web/admin-spa/public/favicon-32x32.png
+ls -la web/admin-spa/public/favicon-16x16.png
+ls -la web/admin-spa/public/apple-touch-icon.png
 grep -n "Whoos Solutions" web/admin-spa/index.html
 
 # 3. 本地测试服务

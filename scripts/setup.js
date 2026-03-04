@@ -71,7 +71,14 @@ async function setup() {
     console.log(chalk.green('\n✅ 设置完成！\n'))
     console.log(chalk.yellow('📋 重要信息：\n'))
     console.log(`   管理员用户名: ${chalk.cyan(adminUsername)}`)
-    console.log(`   管理员密码:   ${chalk.cyan(adminPassword)}`)
+    // 避免在生产/CI 日志中泄漏管理员密码：仅在本地交互式终端且为自动生成时输出明文
+    const passwordFromEnv = !!process.env.ADMIN_PASSWORD
+    const canPrintPassword = !passwordFromEnv && process.stdout.isTTY
+    const passwordDisplay = canPrintPassword ? adminPassword : '[hidden]'
+    console.log(`   管理员密码:   ${chalk.cyan(passwordDisplay)}`)
+    if (!canPrintPassword) {
+      console.log(chalk.gray('   (密码已隐藏；建议通过环境变量 ADMIN_PASSWORD 管理)'))
+    }
 
     // 如果是自动生成的凭据，强调需要保存
     if (!process.env.ADMIN_USERNAME && !process.env.ADMIN_PASSWORD) {
