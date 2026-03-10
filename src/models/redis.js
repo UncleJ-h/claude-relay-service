@@ -1932,6 +1932,21 @@ class RedisClient {
     await this.client.expire(weeklyKey, 14 * 24 * 3600)
   }
 
+  _hasCostRelevantUsage(modelUsage) {
+    if (!modelUsage) {
+      return false
+    }
+
+    return Boolean(
+      modelUsage.inputTokens ||
+        modelUsage.outputTokens ||
+        modelUsage.cacheCreateTokens ||
+        modelUsage.cacheReadTokens ||
+        modelUsage.ephemeral5mTokens ||
+        modelUsage.ephemeral1hTokens
+    )
+  }
+
   // 💰 计算账户的每日费用（基于模型使用，使用索引集合替代 KEYS）
   async getAccountDailyCost(accountId) {
     const CostCalculator = require('../utils/costCalculator')
@@ -1963,7 +1978,7 @@ class RedisClient {
       const model = accountModels[i]
       const [err, modelUsage] = results[i]
 
-      if (!err && modelUsage && (modelUsage.inputTokens || modelUsage.outputTokens)) {
+      if (!err && this._hasCostRelevantUsage(modelUsage)) {
         const usage = {
           input_tokens: parseInt(modelUsage.inputTokens || 0),
           output_tokens: parseInt(modelUsage.outputTokens || 0),
@@ -2061,7 +2076,7 @@ class RedisClient {
       const { accountId, model } = queryOrder[i]
       const [err, modelUsage] = results[i]
 
-      if (!err && modelUsage && (modelUsage.inputTokens || modelUsage.outputTokens)) {
+      if (!err && this._hasCostRelevantUsage(modelUsage)) {
         const usage = {
           input_tokens: parseInt(modelUsage.inputTokens || 0),
           output_tokens: parseInt(modelUsage.outputTokens || 0),
@@ -2113,7 +2128,7 @@ class RedisClient {
       const parts = key.split(':')
       const model = parts[4]
 
-      if (modelUsage.inputTokens || modelUsage.outputTokens) {
+      if (this._hasCostRelevantUsage(modelUsage)) {
         const usage = {
           input_tokens: parseInt(modelUsage.inputTokens || 0),
           output_tokens: parseInt(modelUsage.outputTokens || 0),

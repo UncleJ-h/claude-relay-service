@@ -51,7 +51,7 @@ router.get('/claude-console-accounts', authenticateAdmin, async (req, res) => {
     const accountsWithStats = await Promise.all(
       accounts.map(async (account) => {
         try {
-          const usageStats = await redis.getAccountUsageStats(account.id, 'openai')
+          const usageStats = await redis.getAccountUsageStats(account.id)
           const groupInfos = await accountGroupService.getAccountGroups(account.id)
 
           const formattedAccount = formatAccountExpiry(account)

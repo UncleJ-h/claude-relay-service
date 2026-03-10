@@ -357,10 +357,17 @@ class PricingService {
       return null
     }
 
+    const dotAlias = typeof modelName === 'string' ? modelName.replace(/\./g, '-') : modelName
+
     // 尝试直接匹配
     if (this.pricingData[modelName]) {
       logger.debug(`💰 Found exact pricing match for ${modelName}`)
       return this.pricingData[modelName]
+    }
+
+    if (dotAlias !== modelName && this.pricingData[dotAlias]) {
+      logger.debug(`💰 Found pricing for ${modelName} via dot-to-dash alias: ${dotAlias}`)
+      return this.pricingData[dotAlias]
     }
 
     // 特殊处理：gpt-5-codex 回退到 gpt-5
@@ -412,7 +419,7 @@ class PricingService {
     }
 
     // 尝试模糊匹配（处理版本号等变化）
-    const normalizedModel = modelName.toLowerCase().replace(/[_-]/g, '')
+    const normalizedModel = dotAlias.toLowerCase().replace(/[_-]/g, '')
 
     for (const [key, value] of Object.entries(this.pricingData)) {
       const normalizedKey = key.toLowerCase().replace(/[_-]/g, '')
