@@ -372,4 +372,28 @@ describe('PricingService - 200K+ Long Context Pricing', () => {
       expect(result.totalCost).toBeCloseTo(expectedTotal, 10)
     })
   })
+
+  describe('Claude 模型别名兼容', () => {
+    it('应支持不带 provider 前缀的 dotted alias', () => {
+      const usage = {
+        input_tokens: 3,
+        output_tokens: 119,
+        cache_creation_input_tokens: 16958,
+        cache_read_input_tokens: 0,
+        cache_creation: {
+          ephemeral_5m_input_tokens: 0,
+          ephemeral_1h_input_tokens: 16958
+        }
+      }
+
+      const pricing = pricingService.getModelPricing('claude-opus-4.6')
+      const result = pricingService.calculateCost(usage, 'claude-opus-4.6')
+
+      expect(pricing).toBeTruthy()
+      expect(result.hasPricing).toBe(true)
+      expect(result.totalCost).toBeGreaterThan(0)
+      expect(result.pricing.input).toBeCloseTo(0.000005, 12)
+      expect(result.pricing.ephemeral1h).toBeCloseTo(0.00001, 12)
+    })
+  })
 })
