@@ -108,7 +108,7 @@ class CostCalculator {
       // 转换 pricingService 返回的格式到 costCalculator 的格式
       // result.pricing 在模型未找到时可能为 undefined，需防护
       if (!result || !result.pricing) {
-        return this._fallbackCost(usage, model)
+        return this._fallbackCost(usage, model, serviceTier)
       }
       return {
         model,
@@ -157,7 +157,7 @@ class CostCalculator {
     }
 
     // 否则使用旧的逻辑（向后兼容）
-    return this._calculateLegacyCost(usage, model)
+    return this._calculateLegacyCost(usage, model, serviceTier)
   }
 
   static _normalizeModelForLookup(model) {
@@ -176,7 +176,7 @@ class CostCalculator {
     return name
   }
 
-  static _calculateLegacyCost(usage, model = 'unknown') {
+  static _calculateLegacyCost(usage, model = 'unknown', serviceTier = null) {
     const modelForLookup = this._normalizeModelForLookup(model)
 
     const inputTokens = usage.input_tokens || 0
@@ -395,8 +395,8 @@ class CostCalculator {
   }
   // pricingService 找不到模型定价时的安全兜底：
   // 用 legacy 逻辑回退，避免 quota/usage 显示为 0 或直接崩溃。
-  static _fallbackCost(usage, model) {
-    return this._calculateLegacyCost(usage, model)
+  static _fallbackCost(usage, model, serviceTier = null) {
+    return this._calculateLegacyCost(usage, model, serviceTier)
   }
 }
 
