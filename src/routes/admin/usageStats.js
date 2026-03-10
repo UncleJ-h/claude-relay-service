@@ -2852,14 +2852,16 @@ router.get('/api-keys/:keyId/usage-records', authenticateAdmin, async (req, res)
     for (const record of filteredRecords) {
       const usage = toUsageObject(record)
       const costData = CostCalculator.calculateCost(usage, record.model || 'unknown')
-      const computedCost =
-        typeof record.cost === 'number' ? record.cost : costData?.costs?.total || 0
       const totalTokens =
         record.totalTokens ||
         usage.input_tokens +
           usage.output_tokens +
           usage.cache_creation_input_tokens +
           usage.cache_read_input_tokens
+      const computedCost =
+        typeof record.cost === 'number' && !(record.cost === 0 && totalTokens > 0)
+          ? record.cost
+          : costData?.costs?.total || 0
 
       summary.totalRequests += 1
       summary.inputTokens += usage.input_tokens
@@ -2909,16 +2911,20 @@ router.get('/api-keys/:keyId/usage-records', authenticateAdmin, async (req, res)
     for (const record of pageRecords) {
       const usage = toUsageObject(record)
       const costData = CostCalculator.calculateCost(usage, record.model || 'unknown')
-      const computedCost =
-        typeof record.cost === 'number' ? record.cost : costData?.costs?.total || 0
-      const realCost =
-        typeof record.realCost === 'number' ? record.realCost : costData?.costs?.total || 0
       const totalTokens =
         record.totalTokens ||
         usage.input_tokens +
           usage.output_tokens +
           usage.cache_creation_input_tokens +
           usage.cache_read_input_tokens
+      const computedCost =
+        typeof record.cost === 'number' && !(record.cost === 0 && totalTokens > 0)
+          ? record.cost
+          : costData?.costs?.total || 0
+      const realCost =
+        typeof record.realCost === 'number' && !(record.realCost === 0 && totalTokens > 0)
+          ? record.realCost
+          : costData?.costs?.total || 0
 
       const accountInfo = await resolveAccountInfo(record.accountId, record.accountType)
       const resolvedAccountType = accountInfo?.type || record.accountType || 'unknown'
@@ -3210,14 +3216,16 @@ router.get('/accounts/:accountId/usage-records', authenticateAdmin, async (req, 
     for (const record of filteredRecords) {
       const usage = toUsageObject(record)
       const costData = CostCalculator.calculateCost(usage, record.model || 'unknown')
-      const computedCost =
-        typeof record.cost === 'number' ? record.cost : costData?.costs?.total || 0
       const totalTokens =
         record.totalTokens ||
         usage.input_tokens +
           usage.output_tokens +
           usage.cache_creation_input_tokens +
           usage.cache_read_input_tokens
+      const computedCost =
+        typeof record.cost === 'number' && !(record.cost === 0 && totalTokens > 0)
+          ? record.cost
+          : costData?.costs?.total || 0
 
       summary.totalRequests += 1
       summary.inputTokens += usage.input_tokens
@@ -3239,16 +3247,20 @@ router.get('/accounts/:accountId/usage-records', authenticateAdmin, async (req, 
     for (const record of pageRecords) {
       const usage = toUsageObject(record)
       const costData = CostCalculator.calculateCost(usage, record.model || 'unknown')
-      const computedCost =
-        typeof record.cost === 'number' ? record.cost : costData?.costs?.total || 0
-      const realCost =
-        typeof record.realCost === 'number' ? record.realCost : costData?.costs?.total || 0
       const totalTokens =
         record.totalTokens ||
         usage.input_tokens +
           usage.output_tokens +
           usage.cache_creation_input_tokens +
           usage.cache_read_input_tokens
+      const computedCost =
+        typeof record.cost === 'number' && !(record.cost === 0 && totalTokens > 0)
+          ? record.cost
+          : costData?.costs?.total || 0
+      const realCost =
+        typeof record.realCost === 'number' && !(record.realCost === 0 && totalTokens > 0)
+          ? record.realCost
+          : costData?.costs?.total || 0
 
       enrichedRecords.push({
         timestamp: record.timestamp,
