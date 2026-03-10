@@ -36,5 +36,39 @@ describe('CostCalculator - Pricing Fallback', () => {
       expect(result.usage.cacheCreateTokens).toBeGreaterThan(0)
     })
   })
-})
 
+  test('uses priority pricing when serviceTier is priority and model supports it', () => {
+    jest.isolateModules(() => {
+      const pricingService = require('../src/services/pricingService')
+      pricingService.pricingData = {
+        'gpt-5.4': {
+          litellm_provider: 'openai',
+          supports_service_tier: true,
+          input_cost_per_token: 0.000001,
+          output_cost_per_token: 0.000002,
+          cache_read_input_token_cost: 0.0000001,
+          input_cost_per_token_priority: 0.000003,
+          output_cost_per_token_priority: 0.000004,
+          cache_read_input_token_cost_priority: 0.0000003
+        }
+      }
+
+      const CostCalculator = require('../src/utils/costCalculator')
+
+      const usage = {
+        input_tokens: 1000,
+        output_tokens: 1000,
+        cache_creation_input_tokens: 0,
+        cache_read_input_tokens: 1000
+      }
+
+      const standard = CostCalculator.calculateCost(usage, 'gpt-5.4')
+      const priority = CostCalculator.calculateCost(usage, 'gpt-5.4', 'priority')
+
+      expect(priority.costs.total).toBeGreaterThan(standard.costs.total)
+      expect(priority.pricing.input).toBe(3)
+      expect(priority.pricing.output).toBe(4)
+      expect(priority.pricing.cacheRead).toBe(0.3)
+    })
+  })
+})
