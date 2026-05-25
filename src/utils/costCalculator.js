@@ -179,7 +179,7 @@ class CostCalculator {
     return {
       model,
       pricing: {
-        input: result.pricing.input * 1000000,
+        input: result.pricing.input * 1000000, // 转换为 per 1M tokens
         output: result.pricing.output * 1000000,
         cacheWrite: result.pricing.cacheCreate * 1000000,
         cacheRead: result.pricing.cacheRead * 1000000
@@ -200,15 +200,21 @@ class CostCalculator {
       costs: {
         input: result.inputCost,
         output: result.outputCost,
+        cacheCreate: result.cacheCreateCost,
         cacheWrite: result.cacheCreateCost,
         cacheRead: result.cacheReadCost,
+        ephemeral5m: result.ephemeral5mCost || 0,
+        ephemeral1h: result.ephemeral1hCost || 0,
         total: result.totalCost
       },
       formatted: {
         input: this.formatCost(result.inputCost),
         output: this.formatCost(result.outputCost),
+        cacheCreate: this.formatCost(result.cacheCreateCost),
         cacheWrite: this.formatCost(result.cacheCreateCost),
         cacheRead: this.formatCost(result.cacheReadCost),
+        ephemeral5m: this.formatCost(result.ephemeral5mCost || 0),
+        ephemeral1h: this.formatCost(result.ephemeral1hCost || 0),
         total: this.formatCost(result.totalCost)
       },
       debug: {
@@ -301,15 +307,21 @@ class CostCalculator {
       costs: {
         input: inputCost,
         output: outputCost,
+        cacheCreate: cacheWriteCost,
         cacheWrite: cacheWriteCost,
         cacheRead: cacheReadCost,
+        ephemeral5m: 0,
+        ephemeral1h: 0,
         total: totalCost
       },
       formatted: {
         input: this.formatCost(inputCost),
         output: this.formatCost(outputCost),
+        cacheCreate: this.formatCost(cacheWriteCost),
         cacheWrite: this.formatCost(cacheWriteCost),
         cacheRead: this.formatCost(cacheReadCost),
+        ephemeral5m: this.formatCost(0),
+        ephemeral1h: this.formatCost(0),
         total: this.formatCost(totalCost)
       },
       debug: {
@@ -338,6 +350,7 @@ class CostCalculator {
    * @returns {Object} 费用详情
    */
   static calculateCost(usage, model = 'unknown', serviceTier = null) {
+    // 如果 usage 包含详细的 cache_creation 对象或是 1M 模型，优先使用 pricingService
     if (this.isDetailedPricingRequest(usage, model)) {
       const result = pricingService.calculateCost(usage, model)
       if (this.isValidPricingServiceResult(result)) {

@@ -711,7 +711,8 @@ async function handleMessagesRequest(req, res) {
           const result = await bedrockRelayService.handleStreamRequest(
             _requestBodyBedrock,
             bedrockAccountResult.data,
-            res
+            res,
+            req
           )
 
           // 记录Bedrock使用统计
@@ -777,7 +778,14 @@ async function handleMessagesRequest(req, res) {
         } catch (error) {
           logger.error('❌ Bedrock stream request failed:', error)
           if (!res.headersSent) {
-            return res.status(500).json({ error: 'Bedrock service error', message: error.message })
+            const statusCode = error.$metadata?.httpStatusCode || 500
+            return res
+              .status(statusCode)
+              .json({ error: 'Bedrock service error', message: error.message })
+          }
+          // SSE 流已开始但出错：确保连接被关闭，防止客户端 pending
+          if (!res.writableEnded) {
+            res.end()
           }
           // SSE 流已开始但出错：确保连接被关闭，防止客户端 pending
           if (!res.writableEnded) {
@@ -1180,8 +1188,9 @@ async function handleMessagesRequest(req, res) {
           }
         } catch (error) {
           logger.error('❌ Bedrock non-stream request failed:', error)
+          const statusCode = error.$metadata?.httpStatusCode || 500
           response = {
-            statusCode: 500,
+            statusCode,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ error: 'Bedrock service error', message: error.message }),
             accountId
@@ -1843,13 +1852,11 @@ router.post('/v1/messages/count_tokens', authenticateApiKey, async (req, res) =>
         const sanitizedData = sanitizeUpstreamError(upstreamErrorPayload)
         return res.status(sanitizedData.status).json(sanitizedData)
       }
+      logger.info(`✅ Token count request completed for key: ${req.apiKey.name}`)
       return res.status(response.statusCode).json(jsonData)
     } catch (parseError) {
       return res.status(response.statusCode).send(response.body)
     }
-
-    logger.info(`✅ Token count request completed for key: ${req.apiKey.name}`)
-    return { fallbackResponse: false }
   }
 
   while (attempt < maxAttempts) {
