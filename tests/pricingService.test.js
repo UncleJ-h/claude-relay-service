@@ -39,16 +39,14 @@ describe('PricingService - Long Context Pricing', () => {
   const fs = require('fs')
   const path = require('path')
 
-  // 使用真实的 model_pricing.json 数据（优先 data/，fallback 到 resources/）
+  // 使用 repo 内置 fallback 数据，避免本地 data/ 运行缓存影响测试结果
   const realFs = jest.requireActual('fs')
-  const primaryPath = path.join(process.cwd(), 'data', 'model_pricing.json')
-  const fallbackPath = path.join(
+  const pricingFilePath = path.join(
     process.cwd(),
     'resources',
     'model-pricing',
     'model_prices_and_context_window.json'
   )
-  const pricingFilePath = realFs.existsSync(primaryPath) ? primaryPath : fallbackPath
   const pricingData = JSON.parse(realFs.readFileSync(pricingFilePath, 'utf8'))
 
   beforeEach(() => {
@@ -269,6 +267,24 @@ describe('PricingService - Long Context Pricing', () => {
       }
 
       const result = pricingService.calculateCost(usage, 'claude-opus-4-6[1m]')
+
+      expect(result.isLongContextRequest).toBe(false)
+      expect(result.pricing.input).toBeCloseTo(0.000005, 12)
+      expect(result.pricing.output).toBeCloseTo(0.000025, 12)
+      expect(result.pricing.cacheCreate).toBeCloseTo(0.00000625, 12)
+      expect(result.pricing.cacheRead).toBeCloseTo(0.0000005, 12)
+    })
+
+    it('Opus 4.8 在 [1m] 且超过 200K、未开启 fast-mode 时保持基础价格', () => {
+      const usage = {
+        input_tokens: 210000,
+        output_tokens: 1000,
+        cache_creation_input_tokens: 10000,
+        cache_read_input_tokens: 10000,
+        request_anthropic_beta: 'context-1m-2025-08-07'
+      }
+
+      const result = pricingService.calculateCost(usage, 'claude-opus-4-8[1m]')
 
       expect(result.isLongContextRequest).toBe(false)
       expect(result.pricing.input).toBeCloseTo(0.000005, 12)

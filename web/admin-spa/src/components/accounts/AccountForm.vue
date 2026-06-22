@@ -1489,6 +1489,20 @@
                   <!-- 快捷添加按钮 -->
                   <div class="mt-3 flex flex-wrap gap-2">
                     <button
+                      class="rounded-lg bg-violet-100 px-3 py-1 text-xs text-violet-700 transition-colors hover:bg-violet-200 dark:bg-violet-900/30 dark:text-violet-400 dark:hover:bg-violet-900/50"
+                      type="button"
+                      @click="addPresetMapping('claude-opus-4-8', 'claude-opus-4-8')"
+                    >
+                      + Opus 4.8
+                    </button>
+                    <button
+                      class="rounded-lg bg-violet-100 px-3 py-1 text-xs text-violet-700 transition-colors hover:bg-violet-200 dark:bg-violet-900/30 dark:text-violet-400 dark:hover:bg-violet-900/50"
+                      type="button"
+                      @click="addPresetMapping('claude-opus-4-7', 'claude-opus-4-7')"
+                    >
+                      + Opus 4.7
+                    </button>
+                    <button
                       class="rounded-lg bg-orange-100 px-3 py-1 text-xs text-orange-700 transition-colors hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:hover:bg-orange-900/50"
                       type="button"
                       @click="addPresetMapping('claude-sonnet-4-6', 'claude-sonnet-4-6')"
@@ -3284,6 +3298,20 @@
                     "
                   >
                     + Sonnet 4.5
+                  </button>
+                  <button
+                    class="rounded-lg bg-violet-100 px-3 py-1 text-xs text-violet-700 transition-colors hover:bg-violet-200 dark:bg-violet-900/30 dark:text-violet-400 dark:hover:bg-violet-900/50"
+                    type="button"
+                    @click="addPresetMapping('claude-opus-4-8', 'claude-opus-4-8')"
+                  >
+                    + Opus 4.8
+                  </button>
+                  <button
+                    class="rounded-lg bg-violet-100 px-3 py-1 text-xs text-violet-700 transition-colors hover:bg-violet-200 dark:bg-violet-900/30 dark:text-violet-400 dark:hover:bg-violet-900/50"
+                    type="button"
+                    @click="addPresetMapping('claude-opus-4-7', 'claude-opus-4-7')"
+                  >
+                    + Opus 4.7
                   </button>
                   <button
                     class="rounded-lg bg-violet-100 px-3 py-1 text-xs text-violet-700 transition-colors hover:bg-violet-200 dark:bg-violet-900/30 dark:text-violet-400 dark:hover:bg-violet-900/50"

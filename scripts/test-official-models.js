@@ -10,7 +10,9 @@ const officialModels = [
   { name: 'claude-3-opus-20240229', desc: 'Opus 3 (已弃用)', expectPro: false },
   { name: 'claude-opus-4-20250514', desc: 'Opus 4.0', expectPro: false },
   { name: 'claude-opus-4-1-20250805', desc: 'Opus 4.1', expectPro: false },
-  { name: 'claude-opus-4-5-20251101', desc: 'Opus 4.5', expectPro: true }
+  { name: 'claude-opus-4-5-20251101', desc: 'Opus 4.5', expectPro: true },
+  { name: 'claude-opus-4-7', desc: 'Opus 4.7', expectPro: true },
+  { name: 'claude-opus-4-8', desc: 'Opus 4.8', expectPro: true }
 ]
 
 // 非 Opus 模型
@@ -27,6 +29,8 @@ const nonOpusModels = [
 const otherFormats = [
   { name: 'claude-opus-4.5', expected: true, desc: 'Opus 4.5 点分隔' },
   { name: 'claude-opus-4-5', expected: true, desc: 'Opus 4.5 横线分隔' },
+  { name: 'claude-opus-4.8', expected: true, desc: 'Opus 4.8 点分隔' },
+  { name: 'claude-opus-4-8', expected: true, desc: 'Opus 4.8 横线分隔' },
   { name: 'opus-4.5', expected: true, desc: 'Opus 4.5 无前缀' },
   { name: 'opus-4-5', expected: true, desc: 'Opus 4-5 无前缀' },
   { name: 'opus-latest', expected: true, desc: 'Opus latest' },
